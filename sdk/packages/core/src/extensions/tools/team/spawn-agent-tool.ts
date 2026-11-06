@@ -13,6 +13,7 @@ import {
 	createTool,
 	type HookErrorMode,
 	type ITelemetryService,
+	type ToolApprovalContext,
 	type ToolApprovalRequest,
 	type ToolApprovalResult,
 	type ToolPolicy,
@@ -103,6 +104,7 @@ export interface SpawnAgentToolConfig {
 	 */
 	requestToolApproval?: (
 		request: ToolApprovalRequest,
+		context?: ToolApprovalContext,
 	) => Promise<ToolApprovalResult> | ToolApprovalResult;
 	/**
 	 * Optional logger forwarded to spawned sub-agent runs.

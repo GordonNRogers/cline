@@ -955,7 +955,7 @@ export class LocalRuntimeHost implements RuntimeHost {
 			userFileContentLoader: loadUserFileContent,
 			toolPolicies: bootstrap.toolPolicies,
 			requestToolApproval: bootstrap.requestToolApproval
-				? async (request) => {
+				? async (request, context) => {
 						const requestToolApproval = bootstrap.requestToolApproval;
 						const liveSession = this.sessions.get(sessionId);
 						if (liveSession) {
@@ -968,7 +968,7 @@ export class LocalRuntimeHost implements RuntimeHost {
 									reason: "Tool approval callback is not configured.",
 								};
 							}
-							return await requestToolApproval(request);
+							return await requestToolApproval(request, context);
 						} finally {
 							const currentSession = this.sessions.get(sessionId);
 							if (currentSession?.status === "pending") {

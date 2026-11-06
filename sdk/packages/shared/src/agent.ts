@@ -8,6 +8,7 @@
 import type { GeneratedMedia } from "./llms/media";
 import type { ModelInfo } from "./llms/model-info";
 import type {
+	ToolApprovalContext,
 	ToolApprovalRequest,
 	ToolApprovalResult,
 	ToolPolicy,
@@ -605,6 +606,7 @@ export interface AgentRuntimeConfig {
 	toolContextMetadata?: Record<string, unknown>;
 	requestToolApproval?: (
 		request: ToolApprovalRequest,
+		context?: ToolApprovalContext,
 	) => Promise<ToolApprovalResult> | ToolApprovalResult;
 	/**
 	 * Optional host-owned request projection hook invoked before each model call.

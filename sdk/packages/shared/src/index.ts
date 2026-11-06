@@ -270,6 +270,7 @@ export {
 	type TokenEstimatedRequest,
 } from "./llms/tokens";
 export type {
+	ToolApprovalContext,
 	ToolApprovalRequest,
 	ToolApprovalResult,
 	ToolCallRecord,

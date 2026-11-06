@@ -86,6 +86,11 @@ export interface ToolApprovalResult {
 	reason?: string;
 }
 
+/** Runtime-only context for a tool approval operation; never serialized. */
+export interface ToolApprovalContext {
+	signal?: AbortSignal;
+}
+
 /**
  * Model-facing reason a client sends when the user rejects a tool approval.
  * No tool name is interpolated: tool results are already paired with their

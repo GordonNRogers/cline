@@ -8,6 +8,7 @@ import type {
 	ITelemetryService,
 	ModelTool,
 	RuntimeConfigExtensionKind,
+	ToolApprovalContext,
 	ToolApprovalRequest,
 	ToolApprovalResult,
 } from "@cline/shared";
@@ -88,6 +89,7 @@ export interface RuntimeBuilderInput {
 	telemetry?: ITelemetryService;
 	requestToolApproval?: (
 		request: ToolApprovalRequest,
+		context?: ToolApprovalContext,
 	) => Promise<ToolApprovalResult> | ToolApprovalResult;
 }
 

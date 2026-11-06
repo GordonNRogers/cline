@@ -10,6 +10,7 @@ import type {
 	ITelemetryService,
 	RuntimeConfigExtensionKind,
 	SessionPluginIssue,
+	ToolApprovalContext,
 	ToolApprovalRequest,
 	ToolApprovalResult,
 	WorkspaceInfo,
@@ -317,6 +318,7 @@ export interface LocalRuntimeBootstrap {
 	toolPolicies: AgentConfig["toolPolicies"];
 	requestToolApproval?: (
 		request: ToolApprovalRequest,
+		context?: ToolApprovalContext,
 	) => Promise<ToolApprovalResult> | ToolApprovalResult;
 	pluginSandboxShutdown?: () => Promise<void>;
 	/** Plugins the session asked for but does not have (failed or disabled). */

@@ -1,5 +1,6 @@
 import { createInterface } from "node:readline";
 import {
+	type ToolApprovalContext,
 	type ToolApprovalRequest,
 	type ToolApprovalResult,
 	USER_REJECTED_TOOL_REASON,
@@ -20,6 +21,7 @@ let cachedDesktopApprovalRequester:
 				options?: {
 					approvalDir?: string;
 					sessionId?: string;
+					signal?: AbortSignal;
 				},
 			) => Promise<ToolApprovalResult>
 	  >
@@ -27,6 +29,7 @@ let cachedDesktopApprovalRequester:
 
 async function requestDesktopToolApprovalFromCore(
 	request: ToolApprovalRequest,
+	context?: ToolApprovalContext,
 ): Promise<ToolApprovalResult> {
 	if (!cachedDesktopApprovalRequester) {
 		cachedDesktopApprovalRequester = import("@cline/core")
@@ -38,6 +41,7 @@ async function requestDesktopToolApprovalFromCore(
 							options?: {
 								approvalDir?: string;
 								sessionId?: string;
+								signal?: AbortSignal;
 							},
 						) => Promise<ToolApprovalResult>;
 					}
@@ -59,7 +63,7 @@ async function requestDesktopToolApprovalFromCore(
 	const requester = await cachedDesktopApprovalRequester;
 	const sessionId = request.sessionId;
 	const approvalDir = process.env.CLINE_TOOL_APPROVAL_DIR?.trim();
-	return requester(request, { approvalDir, sessionId });
+	return requester(request, { approvalDir, sessionId, signal: context?.signal });
 }
 
 // =============================================================================
@@ -105,10 +109,11 @@ async function requestTerminalToolApproval(
 
 export async function requestToolApproval(
 	request: ToolApprovalRequest,
+	context?: ToolApprovalContext,
 ): Promise<ToolApprovalResult> {
 	const mode = process.env.CLINE_TOOL_APPROVAL_MODE?.trim().toLowerCase();
 	if (mode === "desktop") {
-		return requestDesktopToolApprovalFromCore(request);
+		return requestDesktopToolApprovalFromCore(request, context);
 	}
 	return requestTerminalToolApproval(request);
 }

@@ -45,6 +45,7 @@ export {
 } from "../llms/reasoning-options";
 
 import type {
+	ToolApprovalContext,
 	ToolApprovalRequest,
 	ToolApprovalResult,
 	ToolCallRecord,
@@ -839,6 +840,7 @@ export interface AgentConfig {
 	 */
 	requestToolApproval?: (
 		request: ToolApprovalRequest,
+		context?: ToolApprovalContext,
 	) => Promise<ToolApprovalResult> | ToolApprovalResult;
 	/**
 	 * Optional callback invoked when consecutive mistakes reach maxConsecutiveMistakes.

@@ -2529,25 +2529,33 @@ export class AgentRuntime {
 				reason: `Tool "${toolCall.toolName}" requires approval but no approval callback is configured`,
 			};
 		}
+
+		this.throwIfAborted();
 		try {
-			return await requestApproval({
-				sessionId:
-					this.config.sessionId?.trim() ||
-					this.config.conversationId?.trim() ||
-					this.state.runId ||
-					this.state.agentId,
-				agentId: this.state.agentId,
-				conversationId:
-					this.config.conversationId?.trim() ||
-					this.state.runId ||
-					this.state.agentId,
-				iteration: this.state.iteration,
-				toolCallId: toolCall.toolCallId,
-				toolName: toolCall.toolName,
-				input,
-				policy,
-			});
+			const result = await requestApproval(
+				{
+					sessionId:
+						this.config.sessionId?.trim() ||
+						this.config.conversationId?.trim() ||
+						this.state.runId ||
+						this.state.agentId,
+					agentId: this.state.agentId,
+					conversationId:
+						this.config.conversationId?.trim() ||
+						this.state.runId ||
+						this.state.agentId,
+					iteration: this.state.iteration,
+					toolCallId: toolCall.toolCallId,
+					toolName: toolCall.toolName,
+					input,
+					policy,
+				},
+				{ signal: this.abortController?.signal },
+			);
+			this.throwIfAborted();
+			return result;
 		} catch (error) {
+			if (this.abortController?.signal.aborted) throw this.normalizeAbortError();
 			return {
 				approved: false,
 				reason: `Tool "${toolCall.toolName}" approval request failed: ${

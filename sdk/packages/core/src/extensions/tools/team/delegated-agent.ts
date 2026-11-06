@@ -6,6 +6,7 @@ import type {
 	BasicLogger,
 	HookErrorMode,
 	ITelemetryService,
+	ToolApprovalContext,
 	ToolApprovalRequest,
 	ToolApprovalResult,
 } from "@cline/shared";
@@ -81,6 +82,7 @@ export interface BuildDelegatedAgentConfigOptions {
 	toolPolicies?: AgentConfig["toolPolicies"];
 	requestToolApproval?: (
 		request: ToolApprovalRequest,
+		context?: ToolApprovalContext,
 	) => Promise<ToolApprovalResult> | ToolApprovalResult;
 	role?: string;
 	cwd?: string;
