@@ -2797,7 +2797,7 @@ describe("AgentRuntime", () => {
 			toolName: "echo",
 			input: { text: "hi" },
 			policy: { autoApprove: false },
-		});
+		}, { signal: expect.any(AbortSignal) });
 	});
 
 	it("applies beforeTool approval policy overrides before executing tools", async () => {
@@ -2864,7 +2864,7 @@ describe("AgentRuntime", () => {
 			toolName: "echo",
 			input: { text: "hi" },
 			policy: { autoApprove: false },
-		});
+		}, { signal: expect.any(AbortSignal) });
 	});
 
 	it("stores tool calls but skips execution when metadata disables external execution", async () => {
