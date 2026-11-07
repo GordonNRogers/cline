@@ -336,6 +336,7 @@ Write a concise commit message.`,
 			expect((await parent.run("Delegate review")).status).toBe("completed");
 			expect(requestToolApproval).toHaveBeenCalledExactlyOnceWith(
 				expect.objectContaining({ toolName: reviewer.name }),
+				{ signal: expect.any(AbortSignal) },
 			);
 			expect(executeDelegation).toHaveBeenCalledTimes(approved ? 1 : 0);
 			expect(agentConstructorSpy).toHaveBeenCalledTimes(approved ? 1 : 0);
