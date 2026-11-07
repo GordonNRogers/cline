@@ -137,6 +137,53 @@ describe("requestDesktopToolApproval", () => {
                 expect(await readdir(approvalDir)).toEqual([]);
         });
 
+        it("returns an explicit denial and consumes both approval files", async () => {
+                const { approvalDir } = await createApprovalDirectory();
+
+                const pending = requestDesktopToolApproval(request, {
+                        approvalDir,
+                        sessionId: request.sessionId,
+                        pollIntervalMs: 5,
+                });
+
+                await waitForRequestFile(approvalDir);
+
+                const decisionFile = `${request.sessionId}.decision.${request.toolCallId}.json`;
+                await writeFile(
+                        join(approvalDir, decisionFile),
+                        JSON.stringify({ approved: false, reason: "Rejected by user" }),
+                        "utf8",
+                );
+
+                await expect(pending).resolves.toEqual({
+                        approved: false,
+                        reason: "Rejected by user",
+                });
+                expect(await readdir(approvalDir)).toEqual([]);
+        });
+
+        it("ignores malformed decisions and times out without approving", async () => {
+                const { approvalDir } = await createApprovalDirectory();
+
+                const pending = requestDesktopToolApproval(request, {
+                        approvalDir,
+                        sessionId: request.sessionId,
+                        timeoutMs: 40,
+                        pollIntervalMs: 5,
+                });
+
+                await waitForRequestFile(approvalDir);
+
+                const decisionFile = `${request.sessionId}.decision.${request.toolCallId}.json`;
+                await writeFile(join(approvalDir, decisionFile), "{ invalid json", "utf8");
+
+                await expect(pending).resolves.toEqual({
+                        approved: false,
+                        reason: "Tool approval request timed out",
+                });
+                expect(await readdir(approvalDir)).toEqual([]);
+        });
+
         it("removes the request file when approval times out", async () => {
                 const { approvalDir } = await createApprovalDirectory();
 
