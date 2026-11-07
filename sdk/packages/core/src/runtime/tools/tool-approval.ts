@@ -160,6 +160,6 @@ export async function requestDesktopToolApproval(
 	}
 
 	throwIfAborted(signal);
-	await unlinkIfPresent(requestPath);
+	await cleanupApprovalFiles(requestPath, decisionPath);
 	return { approved: false, reason: "Tool approval request timed out" };
 }
