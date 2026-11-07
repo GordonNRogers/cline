@@ -2800,6 +2800,81 @@ describe("AgentRuntime", () => {
 		}, { signal: expect.any(AbortSignal) });
 	});
 
+
+	it("aborts the run when cancellation occurs during tool approval", async () => {
+		const approvalStarted = Promise.withResolvers<void>();
+		const executeTool = vi.fn(async () => ({ echoed: "hi" }));
+
+		const requestToolApproval = vi.fn(
+			async (
+				_request: unknown,
+				context?: { signal?: AbortSignal },
+			) => {
+				const signal = context?.signal;
+				if (!signal) {
+					throw new Error("Approval signal was not provided");
+				}
+
+				approvalStarted.resolve();
+
+				await new Promise<void>((resolve) => {
+					if (signal.aborted) {
+						resolve();
+						return;
+					}
+
+					signal.addEventListener("abort", resolve, { once: true });
+				});
+
+				// A callback that resolves with a denial after cancellation must
+				// not turn the aborted run into a model-visible tool rejection.
+				return {
+					approved: false,
+					reason: "Approval cancelled",
+				};
+			},
+		);
+
+		const model = new ScriptedModel([
+			() => [
+				{
+					type: "tool-call-delta",
+					toolCallId: "call_cancelled",
+					toolName: "echo",
+					inputText: '{"text":"hi"}',
+				},
+				{ type: "finish", reason: "tool-calls" },
+			],
+		]);
+
+		const runtime = new AgentRuntime({
+			model,
+			tools: [
+				{
+					name: "echo",
+					description: "Echo input text",
+					inputSchema: { type: "object" },
+					execute: executeTool,
+				},
+			],
+			toolPolicies: { "*": { autoApprove: false } },
+			requestToolApproval,
+		});
+
+		const run = runtime.run("Start");
+
+		await approvalStarted.promise;
+		runtime.abort("user cancelled");
+
+		const result = await run;
+
+		expect(result.status).toBe("aborted");
+		expect(result.error).toBeUndefined();
+		expect(executeTool).not.toHaveBeenCalled();
+		expect(model.requests).toHaveLength(1);
+		expect(requestToolApproval).toHaveBeenCalledTimes(1);
+	});
+
 	it("applies beforeTool approval policy overrides before executing tools", async () => {
 		const executeTool = vi.fn(async () => ({ echoed: "hi" }));
 		const requestToolApproval = vi.fn(async () => ({
