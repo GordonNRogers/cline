@@ -88,7 +88,7 @@ describe("requestDesktopToolApproval", () => {
                 expect(await readdir(approvalDir)).toEqual([]);
         });
 
-        it("preserves an unconsumed decision file when aborted", async () => {
+        it("removes the request and decision files when aborted after a decision arrives", async () => {
                 const { approvalDir } = await createApprovalDirectory();
                 const controller = new AbortController();
                 const reason = new Error("User cancelled");
@@ -109,10 +109,10 @@ describe("requestDesktopToolApproval", () => {
                 controller.abort(reason);
 
                 await expect(pending).rejects.toBe(reason);
-                expect(await readdir(approvalDir)).toEqual([decisionFile]);
-                await expect(readFile(decisionPath, "utf8")).resolves.toBe(
-                        JSON.stringify({ approved: true }),
-                );
+                expect(await readdir(approvalDir)).toEqual([]);
+                await expect(readFile(decisionPath, "utf8")).rejects.toMatchObject({
+                        code: "ENOENT",
+                });
         });
 
         it("consumes the request and decision files after a successful decision", async () => {
