@@ -2875,6 +2875,59 @@ describe("AgentRuntime", () => {
 		expect(requestToolApproval).toHaveBeenCalledTimes(1);
 	});
 
+	it("does not execute a tool when approval resolves after cancellation", async () => {
+		const approvalStarted = Promise.withResolvers<void>();
+		const resolveApproval = Promise.withResolvers<void>();
+		const executeTool = vi.fn(async () => ({ echoed: "hi" }));
+
+		const requestToolApproval = vi.fn(async () => {
+			approvalStarted.resolve();
+			await resolveApproval.promise;
+			return { approved: true };
+		});
+
+		const model = new ScriptedModel([
+			() => [
+				{
+					type: "tool-call-delta",
+					toolCallId: "call_approval_race",
+					toolName: "echo",
+					inputText: '{"text":"hi"}',
+				},
+				{ type: "finish", reason: "tool-calls" },
+			],
+		]);
+
+		const runtime = new AgentRuntime({
+			model,
+			tools: [
+				{
+					name: "echo",
+					description: "Echo input text",
+					inputSchema: { type: "object" },
+					execute: executeTool,
+				},
+			],
+			toolPolicies: { "*": { autoApprove: false } },
+			requestToolApproval,
+		});
+
+		const run = runtime.run("Start");
+		await approvalStarted.promise;
+
+		// Resolve approval only after the runtime has observed cancellation.
+		runtime.abort("user cancelled");
+		resolveApproval.resolve();
+
+		const result = await run;
+
+		expect(result.status).toBe("aborted");
+		expect(result.error).toBeUndefined();
+		expect(requestToolApproval).toHaveBeenCalledTimes(1);
+		expect(executeTool).not.toHaveBeenCalled();
+		expect(model.requests).toHaveLength(1);
+	});
+
 	it("applies beforeTool approval policy overrides before executing tools", async () => {
 		const executeTool = vi.fn(async () => ({ echoed: "hi" }));
 		const requestToolApproval = vi.fn(async () => ({
