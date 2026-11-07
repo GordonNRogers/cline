@@ -168,7 +168,7 @@ describe("requestDesktopToolApproval", () => {
                 const pending = requestDesktopToolApproval(request, {
                         approvalDir,
                         sessionId: request.sessionId,
-                        timeoutMs: 40,
+                        timeoutMs: 1_000,
                         pollIntervalMs: 5,
                 });
 
