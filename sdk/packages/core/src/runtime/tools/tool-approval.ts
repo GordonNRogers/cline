@@ -59,6 +59,13 @@ async function unlinkIfPresent(path: string): Promise<void> {
 	}
 }
 
+async function cleanupApprovalFiles(requestPath: string, decisionPath: string): Promise<void> {
+	await Promise.all([
+		unlinkIfPresent(requestPath),
+		unlinkIfPresent(decisionPath),
+	]);
+}
+
 function isNotFound(error: unknown): boolean {
 	return (
 		typeof error === "object" &&
@@ -112,7 +119,7 @@ export async function requestDesktopToolApproval(
 		throwIfAborted(signal);
 	} catch (error) {
 		if (signal?.aborted) {
-			await unlinkIfPresent(requestPath);
+			await cleanupApprovalFiles(requestPath, decisionPath);
 			throw abortError(signal);
 		}
 		throw error;
@@ -138,7 +145,7 @@ export async function requestDesktopToolApproval(
 			return result;
 		} catch (error) {
 			if (signal?.aborted) {
-				await unlinkIfPresent(requestPath);
+				await cleanupApprovalFiles(requestPath, decisionPath);
 				throw abortError(signal);
 			}
 			if (!isNotFound(error) && !(error instanceof SyntaxError)) throw error;
@@ -147,7 +154,7 @@ export async function requestDesktopToolApproval(
 		try {
 			await delay(pollIntervalMs, signal);
 		} catch (error) {
-			await unlinkIfPresent(requestPath);
+			await cleanupApprovalFiles(requestPath, decisionPath);
 			throw error;
 		}
 	}
