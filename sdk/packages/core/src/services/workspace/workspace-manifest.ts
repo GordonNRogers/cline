@@ -17,6 +17,12 @@ function defaultGitCommand(
 	args: readonly string[],
 	options: { cwd: string; signal?: AbortSignal },
 ): Promise<{ stdout: string; stderr: string }> {
+	if (options.signal?.aborted) {
+		const error = new Error("The operation was aborted");
+		error.name = "AbortError";
+		return Promise.reject(error);
+	}
+
 	return execFileAsync("git", args, {
 		cwd: options.cwd,
 		encoding: "utf8",
