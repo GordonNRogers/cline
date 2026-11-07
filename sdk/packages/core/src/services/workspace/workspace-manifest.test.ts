@@ -23,14 +23,7 @@ async function createTempDir(): Promise<string> {
 
 afterEach(async () => {
 	await Promise.all(
-		tempDirs.splice(0).map((dir) =>
-			rm(dir, {
-				recursive: true,
-				force: true,
-				maxRetries: 5,
-				retryDelay: 100,
-			}),
-		),
+		tempDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })),
 	);
 });
 
@@ -90,8 +83,10 @@ describe("createWorkspaceGitReader", () => {
 	test("honors cancellation with the default command runner", async () => {
 		const controller = new AbortController();
 		controller.abort();
+		// No temporary workspace is needed: a pre-aborted request must not
+		// start Git, so use the existing OS temp directory and avoid cleanup races.
 		const reader = createWorkspaceGitReader({
-			cwd: await createTempDir(),
+			cwd: tmpdir(),
 			signal: controller.signal,
 		});
 		await expect(reader.isInsideWorkTree()).rejects.toMatchObject({
